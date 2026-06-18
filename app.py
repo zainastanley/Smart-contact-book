@@ -1,5 +1,6 @@
 import tkinter as tk
 import customtkinter as ctk
+from tkinter import messagebox
 
 ctk.set_appearance_mode("System")
 ctk.set_default_color_theme("blue")
@@ -12,10 +13,17 @@ def save_contact():
     name=name_entry.get()
     phone=phone_entry.get()
 
+    if not name or not phone:
+        messagebox.showwarning("Input Error", "Name and Phone Number are required!")
+        return
+    if not phone.isdigit() or len(phone)!=10:
+        messagebox.showwarning("Invalid Phone", "Phone Number must only contain numbers and should be 10 digits long!")
+        return
+
     with open("contacts.txt", "a") as file:
         file.write(f"{name}, {phone}\n")
 
-    print(f"Saving contact: {name} - {phone}")
+    messagebox.showinfo("Success", f"Contact '{name}' saved successfully!")
 
     name_entry.delete(0, tk.END)
     phone_entry.delete(0, tk.END)
