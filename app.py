@@ -1,8 +1,12 @@
 import tkinter as tk
+import customtkinter as ctk
 
-root=tk.Tk()
+ctk.set_appearance_mode("System")
+ctk.set_default_color_theme("blue")
+
+root=ctk.CTk()
 root.title("Smart Contact Book")
-root.geometry("500x500")
+root.geometry("380x320")
 
 def save_contact():
     name=name_entry.get()
@@ -16,19 +20,22 @@ def save_contact():
     name_entry.delete(0, tk.END)
     phone_entry.delete(0, tk.END)
 
-name_label=tk.Label(root, text="Contact Name:")
-name_label.pack(pady=5)
+title_label=ctk.CTkLabel(root, text="Smart Contact Book", font=("Ariel",20,"bold"))
+title_label.pack(pady=15)
 
-name_entry=tk.Entry(root, width=30)
+name_label=ctk.CTkLabel(root, text="Contact Name:", font=("ariel",12))
+name_label.pack(pady=2)
+
+name_entry=ctk.CTkEntry(root, width=250, placeholder_text="Enter name here...")
 name_entry.pack(pady=5)
 
-phone_label=tk.Label(root, text="Phone Number")
-phone_label.pack(pady=5)
+phone_label=ctk.CTkLabel(root, text="Phone Number", font=("Ariel",12))
+phone_label.pack(pady=2)
 
-phone_entry=tk.Entry(root, width=30)
+phone_entry=ctk.CTkEntry(root, width=250, placeholder_text="Enter phone number...")
 phone_entry.pack(pady=5)
 
-save=tk.Button(root, text="Save", command=save_contact)
-save.pack(pady=15)
+save=ctk.CTkButton(root, text="Save", command=save_contact, corner_radius=8)
+save.pack(pady=20)
 
 root.mainloop()
