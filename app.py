@@ -1,6 +1,7 @@
 import tkinter as tk
 import customtkinter as ctk
 from tkinter import messagebox
+import sqlite3
 
 #Application Configuration
 ctk.set_appearance_mode("System")
@@ -19,8 +20,8 @@ def show_frame(frame_to_show):
 
 # Function to save contact information
 def save_contact():
-    name=name_entry.get()
-    phone=phone_entry.get()
+    name=name_entry.get().strip()
+    phone=phone_entry.get().strip()
 
     if not name or not phone:
         messagebox.showwarning("Input Error", "Name and Phone Number are required!")
@@ -28,9 +29,16 @@ def save_contact():
     if not phone.isdigit() or len(phone)!=10:
         messagebox.showwarning("Invalid Phone", "Phone Number must only contain numbers and should be 10 digits long!")
         return
+    
+    #----SQL storage----
+    conn=sqlite3.connect("contacts.db")
+    cursor=conn.cursor()
 
-    with open("contacts.txt", "a") as file:
-        file.write(f"{name}, {phone}\n")
+    cursor.execute("INSERT INTO contacts (name, phone) VALUES (?, ?)", (name, phone))
+
+    conn.commit()
+    conn.close()
+    #-------------------
 
     messagebox.showinfo("Success", f"Contact '{name}' saved successfully!")
 
@@ -39,25 +47,22 @@ def save_contact():
 
 # Function to search for a contact
 def search_contact():
-    query=search_entry.get().strip().lower()
+    query=search_entry.get().strip()
     if not query:
         messagebox.showwarning("Input Error", "Please enter a name to search!")
         return
-    try:
-        with open("contacts.txt", "r") as file:
-            lines=file.readlines()
-    except FileNotFoundError:
-        messagebox.showinfo("Error", "No contacts found.")
-        return
-    for line in lines:
-        parts=line.strip().split(", ")
-        if len(parts)==2:
-            contact_name=parts[0]
-            contact_phone=parts[1]
-            if contact_name.lower()==query:
-                result_label.configure(text=f"Name: {contact_name}\nPhone: {contact_phone}", text_color="white")
-                return
-    result_label.configure(text="Contact not found.", text_color="red")
+    conn=sqlite3.connect("contacts.db")
+    cursor=conn.cursor()
+    cursor.execute("SELECT name, phone FROM contacts WHERE LOWER(name)=LOWER(?)", (query,))
+    results=cursor.fetchall()
+    conn.close()
+
+    if results:
+        contact_name=results[0][0]
+        contact_phone=results[0][1]
+        result_label.configure(text=f"Name: {contact_name}\nPhone: {contact_phone}", text_color="white")
+    else:
+        result_label.configure(text="Contact not found.", text_color="red")
 
 # Sidebar Menu
 sidebar=ctk.CTkFrame(root, width=150, corner_radius=0)
@@ -119,6 +124,19 @@ search_button.pack(pady=10)
 
 result_label=ctk.CTkLabel(search_frame, text="", font=("Arial",14,"bold"))
 result_label.pack(pady=20)
+
+#Database Initialization
+conn=sqlite3.connect("contacts.db")
+cursor=conn.cursor()
+cursor.execute("""
+CREATE TABLE IF NOT EXISTS contacts (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    phone TEXT NOT NULL
+)
+""")
+conn.commit()
+conn.close()
 
 # Initial Frame Display
 show_frame(welcome_frame)
