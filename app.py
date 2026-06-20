@@ -30,6 +30,7 @@ def show_frame(frame_to_show):
     add_frame.pack_forget()
     search_frame.pack_forget()
     update_frame.pack_forget()
+    delete_frame.pack_forget()
     frame_to_show.pack(side="right",fill="both", expand=True, padx=20, pady=20)
 
 # Function to save contact information
@@ -65,11 +66,13 @@ def search_contact():
     if not query:
         messagebox.showwarning("Input Error", "Please enter a name to search!")
         return
+    #---SQL Search---
     conn=sqlite3.connect("contacts.db")
     cursor=conn.cursor()
     cursor.execute("SELECT name, phone FROM contacts WHERE LOWER(name)=LOWER(?)", (query,))
     results=cursor.fetchall()
     conn.close()
+    #----------------
 
     if results:
         contact_name=results[0][0]
@@ -105,6 +108,34 @@ def update_contact():
         update_phone_entry.delete(0, tk.END)
     else:
         messagebox.showwarning("Not Found", f"Contact '{target_name}' not found!")
+
+#Function to delete contact
+def delete_contact():
+    target_name=delete_entry.get().strip()
+
+    if not target_name:
+        messagebox.showwarning("Input Error", "Please enter a name to delete!")
+        return
+    
+    confirm=messagebox.askyesno("Confirm Delete", f"Are you sure you want to delete contact '{target_name}'?")
+    if not confirm:
+        return
+    
+    #---SQL Delete---
+    conn=sqlite3.connect("contacts.db")
+    cursor=conn.cursor()
+    cursor.execute("DELETE FROM contacts WHERE LOWER(name)=LOWER(?)", (target_name,))
+    rows_affected=cursor.rowcount
+    conn.commit()
+    conn.close()
+    #----------------
+
+    if rows_affected>0:
+        messagebox.showinfo("Success", f"Contact '{target_name}' deleted successfully!")
+        delete_entry.delete(0, tk.END)
+    else:
+        messagebox.showwarning("Not Found", f"Contact '{target_name}' not found!")
+
 # Sidebar Menu
 sidebar=ctk.CTkFrame(root, width=150, corner_radius=0)
 sidebar.pack(side="left", fill="y")
@@ -123,6 +154,9 @@ btn_search.pack(pady=10, padx=10)
 
 btn_update=ctk.CTkButton(sidebar, text="Update Contact", command=lambda: show_frame(update_frame))
 btn_update.pack(pady=10, padx=10)
+
+btn_delete=ctk.CTkButton(sidebar, text="Delete Contact", command=lambda: show_frame(delete_frame))
+btn_delete.pack(pady=10, padx=10)
 
 #Welcome Frame
 welcome_frame=ctk.CTkFrame(root, fg_color="transparent")
@@ -189,6 +223,21 @@ update_phone_entry.pack(pady=5)
 
 update_button=ctk.CTkButton(update_frame, text="Update Info", command=update_contact)
 update_button.pack(pady=20)
+
+# Delete Contact Frame
+delete_frame=ctk.CTkFrame(root, fg_color="transparent")
+
+delete_title=ctk.CTkLabel(delete_frame, text="Delete Contact", font=("Arial",20,"bold"))
+delete_title.pack(pady=15)
+
+delete_name_label=ctk.CTkLabel(delete_frame, text="Contact Name to Delete:", font=("Arial",12))
+delete_name_label.pack(pady=2)
+
+delete_entry=ctk.CTkEntry(delete_frame, width=250, placeholder_text="Enter name of contact to delete...")
+delete_entry.pack(pady=5)
+
+delete_button=ctk.CTkButton(delete_frame, text="Delete Contact", command=delete_contact)
+delete_button.pack(pady=20)
 
 # Initial Frame Display
 show_frame(welcome_frame)
