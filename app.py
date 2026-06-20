@@ -7,6 +7,19 @@ import sqlite3
 ctk.set_appearance_mode("System")
 ctk.set_default_color_theme("blue")
 
+#Database Initialization
+conn=sqlite3.connect("contacts.db")
+cursor=conn.cursor()
+cursor.execute("""
+CREATE TABLE IF NOT EXISTS contacts (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    phone TEXT NOT NULL
+)
+""")
+conn.commit()
+conn.close()
+
 root=ctk.CTk()
 root.title("Smart Contact Book")
 root.geometry("680x420")
@@ -176,19 +189,6 @@ update_phone_entry.pack(pady=5)
 
 update_button=ctk.CTkButton(update_frame, text="Update Info", command=update_contact)
 update_button.pack(pady=20)
-
-#Database Initialization
-conn=sqlite3.connect("contacts.db")
-cursor=conn.cursor()
-cursor.execute("""
-CREATE TABLE IF NOT EXISTS contacts (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT NOT NULL,
-    phone TEXT NOT NULL
-)
-""")
-conn.commit()
-conn.close()
 
 # Initial Frame Display
 show_frame(welcome_frame)
