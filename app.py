@@ -16,6 +16,7 @@ def show_frame(frame_to_show):
     welcome_frame.pack_forget()
     add_frame.pack_forget()
     search_frame.pack_forget()
+    update_frame.pack_forget()
     frame_to_show.pack(side="right",fill="both", expand=True, padx=20, pady=20)
 
 # Function to save contact information
@@ -64,6 +65,33 @@ def search_contact():
     else:
         result_label.configure(text="Contact not found.", text_color="red")
 
+#Function to update contact
+def update_contact():
+    target_name=update_name_entry.get().strip()
+    new_phone=update_phone_entry.get().strip()
+
+    if not target_name or not new_phone:
+        messagebox.showwarning("Input Error", "Both fields are required!")
+        return
+    if not new_phone.isdigit() or len(new_phone)!=10:
+        messagebox.showwarning("Invalid Phone", "Phone Number must only contain numbers and should be 10 digits long!")
+        return
+    
+    #---SQL Update---
+    conn=sqlite3.connect("contacts.db")
+    cursor=conn.cursor()
+    cursor.execute("UPDATE contacts SET phone=? WHERE LOWER(name)=LOWER(?)", (new_phone, target_name))
+    rows_affected=cursor.rowcount
+    conn.commit()
+    conn.close()
+    #----------------
+
+    if rows_affected>0:
+        messagebox.showinfo("Success", f"Contact '{target_name}' updated successfully!")
+        update_name_entry.delete(0, tk.END)
+        update_phone_entry.delete(0, tk.END)
+    else:
+        messagebox.showwarning("Not Found", f"Contact '{target_name}' not found!")
 # Sidebar Menu
 sidebar=ctk.CTkFrame(root, width=150, corner_radius=0)
 sidebar.pack(side="left", fill="y")
@@ -79,6 +107,9 @@ btn_add.pack(pady=10, padx=10)
 
 btn_search=ctk.CTkButton(sidebar, text="Search Contact", command=lambda: show_frame(search_frame))
 btn_search.pack(pady=10, padx=10)
+
+btn_update=ctk.CTkButton(sidebar, text="Update Contact", command=lambda: show_frame(update_frame))
+btn_update.pack(pady=10, padx=10)
 
 #Welcome Frame
 welcome_frame=ctk.CTkFrame(root, fg_color="transparent")
@@ -124,6 +155,27 @@ search_button.pack(pady=10)
 
 result_label=ctk.CTkLabel(search_frame, text="", font=("Arial",14,"bold"))
 result_label.pack(pady=20)
+
+# Update Contact Frame
+update_frame=ctk.CTkFrame(root, fg_color="transparent")
+
+update_title=ctk.CTkLabel(update_frame, text="Update Contact", font=("Arial",20,"bold"))
+update_title.pack(pady=15)
+
+update_name_label=ctk.CTkLabel(update_frame, text="Contact Name to Update:", font=("Arial",12))
+update_name_label.pack(pady=2)
+
+update_name_entry=ctk.CTkEntry(update_frame, width=250, placeholder_text="Enter name of contact to update...")
+update_name_entry.pack(pady=5)
+
+update_phone_label=ctk.CTkLabel(update_frame, text="New Phone Number:", font=("Arial",12))
+update_phone_label.pack(pady=2)
+
+update_phone_entry=ctk.CTkEntry(update_frame, width=250, placeholder_text="Enter new phone number...")
+update_phone_entry.pack(pady=5)
+
+update_button=ctk.CTkButton(update_frame, text="Update Info", command=update_contact)
+update_button.pack(pady=20)
 
 #Database Initialization
 conn=sqlite3.connect("contacts.db")
